@@ -3,7 +3,6 @@ package main
 import (
 	"strconv"
 	"strings"
-	//"fmt"
 
 	"github.com/evanw/esbuild/pkg/api"
 )
@@ -82,17 +81,22 @@ func (pl *ParserLexer) Lex(lval *astSymType) int {
 		if token.kind == TEof {
 			return 0
 		} else if token.kind == TInvalid {
+			pl.err = "invalid token"
 			return 0
 		} else if pl.in_ticks {
 			pl.cursor = uint(token.end)
 			lval.node = AstNode{token, nil}
 			return int(token.kind)
 		} else if token.kind == TPLSlash &&
-			pl.prev_tok != TPLInc &&
-			pl.prev_tok != TPLDec &&
-			pl.prev_tok != TPLValue {
-			token = lexRegexpLit(pl.input, pl.cursor)
-			pl.prev_tok = TPLSlash
+		pl.prev_tok != TPLInc &&
+		pl.prev_tok != TPLDec &&
+		pl.prev_tok != TPLValue &&
+		pl.prev_tok != TRBrace &&
+		pl.prev_tok != TRCircle &&
+		pl.prev_tok != TRSquare && 
+		pl.prev_tok != TIdentifier {
+			token = lexRegexpLit(pl.input, uint(token.begin))
+			pl.prev_tok = TPLValue
 			pl.cursor = uint(token.end)
 			lval.node = AstNode{token, nil}
 			return int(token.kind)
