@@ -619,6 +619,7 @@ go build .
 # Todo list
 - Module system: one can `inquire` another JC file, which consists of including all C in that file, as well as returning the value of the other file's JC_EXPORTS global variable. `const atomic = inquire "atomic.jh";`
 - C++ support: when a flag is passed to the program, `class` should mean C++, not JS class. Create a keyword `jclass` to represent JS classes. Alternatively, do it the other way around, and have the `cppclass` keyword.
+- Language server / integration with IDEs to provide proper syntax highlighting.
 
 # Contributing
 Any and all contributions are greatly appreciated. Just send a PR, issue, or feature request :)
