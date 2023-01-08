@@ -123,8 +123,8 @@ function compileBf(code, tapesz) {
                 throw new Error("unmatched loop end");
             }
             body.add(quote(
-            goto ${loop.before};
-                ${loop.after}:
+                goto ${loop.before};
+            ${loop.after}:
                 ;
             ));
             break;
