@@ -3,7 +3,6 @@ package main
 import (
 	"strconv"
 	"strings"
-	"fmt"
 	"github.com/evanw/esbuild/pkg/api"
 )
 
@@ -229,7 +228,6 @@ func nextMaybeJsStmt(nodes []AstNode, input string) (uint32, uint32) {
 		}, input)
 		fmt.Println("\nMEAT END !!!!!!")*/
 		if !found_meat || len(nodes) < 2 {
-			fmt.Println("too short")
 			return U32_MAX, U32_MAX
 		}
 		ch = nodes[0].token.kind
@@ -258,7 +256,6 @@ func nextMaybeJsStmt(nodes []AstNode, input string) (uint32, uint32) {
 			offset += stmt_end
 			continue
 		}
-		fmt.Println("stmt_end ", stmt_end)
 		return offset, offset + stmt_end
 	}
 }
@@ -425,7 +422,6 @@ func reviseTLC(root []AstNode, input string) []AstNode {
 	for {
 		cstart, cend := nextCSection(root, input)
 		if cstart == U32_MAX {
-			fmt.Printf("cstart is U32_MAX\n")
 			break
 		} else {
 			//fmt.Printf("c section is [%d, %d)\n", cstart, cend)
@@ -587,9 +583,7 @@ func parseIntoAst(input string) (AstNode, string) {
 		return AstNode{LexToken{0, 0, 0}, nil}, estr
 	}
 	root.nodes = reviseTLC(root.nodes, input)
-	fmt.Println("done revising TLC")
 	revised := reviseLfn(root.nodes)
-	fmt.Println("done revising Lfn")
 	if revised != nil {
 		root.nodes = revised
 	}

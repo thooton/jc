@@ -147,13 +147,11 @@ func main() {
 		os.Exit(1)
 	}
 	input := string(input_bytes)
-	fmt.Println("parsing")
 	root, estr := parseIntoAst(input)
 	if estr != "" {
 		fmt.Printf("parsing error: %s\n", estr)
 		os.Exit(1)
 	}
-	fmt.Println("done parsing")
 	//debugNode(&root, input)
 	result := codegenPerform(&root, input, outfile)
 	dotidx := strings.LastIndexByte(infile, '.')
