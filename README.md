@@ -104,14 +104,14 @@ function compileBf(code, tapesz) {
             ));
             break;
         case '[':
+            // gensym() returns a unique symbol
             var loop = {
-                // generate a unique set of symbols for the label
                 before: gensym(),
                 after: gensym(),
             };
             loopstack.push(loop);
             body.add(quote(
-                ${loop.before}:
+            ${loop.before}:
                 if (tape[i] == 0) {
                     goto ${loop.after};
                 }
@@ -123,8 +123,9 @@ function compileBf(code, tapesz) {
                 throw new Error("unmatched loop end");
             }
             body.add(quote(
-                goto ${loop.before};
+            goto ${loop.before};
                 ${loop.after}:
+                ;
             ));
             break;
         }
