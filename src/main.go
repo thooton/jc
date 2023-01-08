@@ -39,9 +39,6 @@ func debugNode(n *AstNode, input string) {
 	case AstBlock:
 		lst("block")
 		break
-	case AstQuoteHList:
-		lst("quote harmless list")
-		break
 	case AstQuoteUnfin:
 		lst("unfinished quote")
 		break
@@ -86,9 +83,6 @@ func debugNode(n *AstNode, input string) {
 		break
 	case TStructUnionEnum:
 		tok("seu")
-		break
-	case TFunction:
-		tok("function")
 		break
 	case TJsOnly:
 		tok("jsonly")
@@ -153,11 +147,13 @@ func main() {
 		os.Exit(1)
 	}
 	input := string(input_bytes)
+	fmt.Println("parsing")
 	root, estr := parseIntoAst(input)
 	if estr != "" {
 		fmt.Printf("parsing error: %s\n", estr)
 		os.Exit(1)
 	}
+	fmt.Println("done parsing")
 	//debugNode(&root, input)
 	result := codegenPerform(&root, input, outfile)
 	dotidx := strings.LastIndexByte(infile, '.')

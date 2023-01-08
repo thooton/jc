@@ -275,20 +275,6 @@ func pushStringLiteral(src string, sb []byte) []byte {
 	return sb
 }
 
-func startOf(node *AstNode) uint32 {
-	for node.token.kind < AstEnd {
-		node = &node.nodes[0]
-	}
-	return node.token.begin
-}
-
-func endOf(node *AstNode) uint32 {
-	for node.token.kind < AstEnd {
-		node = &node.nodes[len(node.nodes)-1]
-	}
-	return node.token.end
-}
-
 func (cg *Codegen) generateForC(nodes []AstNode) {
 	iend_prev := startOf(&nodes[0])
 	for i := range nodes {

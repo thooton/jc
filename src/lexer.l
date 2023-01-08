@@ -63,7 +63,7 @@ lex_start:
             }
         }
         scm = "//" [^\n\x00]*;
-        wsp = ([\x01-\x09\x0B-\x20\x85] | scm | "\\r\n" | "\\n")+;
+        wsp = ([\x01-\x09\x0B-\x20\x85] | scm | "\\\r\n" | "\\\n")+;
         wsp {
             began = cursor
             goto lex_start

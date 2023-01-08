@@ -3,7 +3,7 @@ package main
 import (
 	"strconv"
 	"strings"
-
+	"fmt"
 	"github.com/evanw/esbuild/pkg/api"
 )
 
@@ -229,6 +229,7 @@ func nextMaybeJsStmt(nodes []AstNode, input string) (uint32, uint32) {
 		}, input)
 		fmt.Println("\nMEAT END !!!!!!")*/
 		if !found_meat || len(nodes) < 2 {
+			fmt.Println("too short")
 			return U32_MAX, U32_MAX
 		}
 		ch = nodes[0].token.kind
@@ -257,8 +258,23 @@ func nextMaybeJsStmt(nodes []AstNode, input string) (uint32, uint32) {
 			offset += stmt_end
 			continue
 		}
+		fmt.Println("stmt_end ", stmt_end)
 		return offset, offset + stmt_end
 	}
+}
+
+func startOf(node *AstNode) uint32 {
+	for node.token.kind < AstEnd {
+		node = &node.nodes[0]
+	}
+	return node.token.begin
+}
+
+func endOf(node *AstNode) uint32 {
+	for node.token.kind < AstEnd {
+		node = &node.nodes[len(node.nodes)-1]
+	}
+	return node.token.end
 }
 
 /*
@@ -284,8 +300,8 @@ func isValidJs(js_maybe []AstNode, input string) bool {
 	/* cheap trick */
 	tokens_builder := strings.Builder{}
 	for i := range js_maybe {
-		token := js_maybe[i].token
-		tokens_builder.WriteString(input[token.begin:token.end])
+		node := &js_maybe[i]
+		tokens_builder.WriteString(input[startOf(node):endOf(node)])
 		tokens_builder.WriteByte(' ')
 	}
 	tokens := tokens_builder.String()
@@ -296,28 +312,39 @@ func isValidJs(js_maybe []AstNode, input string) bool {
 
 func tryExtractC(nodes []AstNode, input string) uint32 {
 	var ch uint32
-	var stmt_end uint32 = U32_MAX
-	var block_terminated bool
+	var stmt_end uint32 = uint32(len(nodes))
+	var circle_nesting uint32 = 0
+	has_circles := false
+	found_seu := false
 	for i := range nodes {
 		ch = nodes[i].token.kind
-		if ch == TSemi || ch == AstBlock {
-			stmt_end = uint32(i + 1)
-			block_terminated = (ch == AstBlock)
-			break
-		}
-	}
-	if stmt_end == U32_MAX {
-		return U32_MAX
-	}
-	stmt := nodes[:stmt_end]
-	has_circles := false
-	for i := range stmt {
-		ch = stmt[i].token.kind
 		/* has a JS keyword */
 		if ch == TJsOnly {
 			return U32_MAX
-		} else if ch == TLCircle || ch == TRCircle {
-			has_circles = true
+		} else if ch == AstMacro {
+			return uint32(i)
+		} else if ch == TLCircle {
+			has_circles = true	
+			circle_nesting++
+		} else if ch == TRCircle {
+			if circle_nesting > 0 {
+				circle_nesting--
+			} else {
+				return U32_MAX
+			}
+		} else if ch == TStructUnionEnum {
+			found_seu = true
+		} else if ch == AstBlock &&
+		circle_nesting == 0 {
+			// consume possible trailing semicolon post-block
+			// const int values[1] = {0};
+			// (nodes will always be semicolon-terminated)
+			if (i+2) == len(nodes) {
+				break
+			} else {
+				stmt_end = uint32(i+1)
+				break
+			}
 		}
 	}
 	/* we don't allow struct declarations with parentheses
@@ -329,31 +356,11 @@ func tryExtractC(nodes []AstNode, input string) uint32 {
 	   because macros can be generated dynamically,
 	   we cannot tell the difference.
 	*/
-	if !has_circles {
-		found_seu := false
-		for i := range stmt {
-			ch = stmt[i].token.kind
-			if ch == TStructUnionEnum {
-				found_seu = true
-				break
-			}
-		}
-		if found_seu {
-			if !block_terminated {
-				return stmt_end
-			}
-			after_stmt := nodes[stmt_end:]
-			for i := range after_stmt {
-				ch = after_stmt[i].token.kind
-				if ch == AstBlock {
-					break
-				} else if ch == TSemi {
-					return stmt_end + uint32(i+1)
-				}
-			}
-			return stmt_end
-		}
+	if found_seu && !has_circles {
+		return uint32(len(nodes))
 	}
+
+	stmt := nodes[:stmt_end]
 	for i := range stmt {
 		ch = stmt[i].token.kind
 		/* has interpolated JS,
@@ -418,7 +425,7 @@ func reviseTLC(root []AstNode, input string) []AstNode {
 	for {
 		cstart, cend := nextCSection(root, input)
 		if cstart == U32_MAX {
-			//fmt.Printf("cstart is U32_MAX\n")
+			fmt.Printf("cstart is U32_MAX\n")
 			break
 		} else {
 			//fmt.Printf("c section is [%d, %d)\n", cstart, cend)
@@ -471,8 +478,7 @@ func findLastLfn(nodes []AstNode) (uint32, uint32, uint32) {
 					circle_nesting++
 				} else if kind == TRCircle {
 					if circle_nesting == 0 {
-						i = start
-						continue
+						break
 					}
 					circle_nesting--
 				} else if kind == AstBlock &&
@@ -581,7 +587,9 @@ func parseIntoAst(input string) (AstNode, string) {
 		return AstNode{LexToken{0, 0, 0}, nil}, estr
 	}
 	root.nodes = reviseTLC(root.nodes, input)
+	fmt.Println("done revising TLC")
 	revised := reviseLfn(root.nodes)
+	fmt.Println("done revising Lfn")
 	if revised != nil {
 		root.nodes = revised
 	}
