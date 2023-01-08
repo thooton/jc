@@ -410,7 +410,7 @@ int main(void) {
     int a = vec_pop_back_int(&v);
     int b = vec_pop_front_int(&v);
     int c = vec_pop_back_int(&v);
-    printf("%d %d %d", a, b, c);
+    printf("%d %d %d\n", a, b, c);
 }
 ```
 ```
@@ -445,7 +445,7 @@ const cc = (async() => {
         "supply one by setting env variable CC");
 })();
 const has_std_atomics = (async() => {
-    const tmpdir = await fs.mkdtemp("atomicjh");
+    const tmpdir = await fs.mkdtemp("atomic");
     const tmpfile = tmpdir+"/test.c";
     await fs.writeFile(tmpfile, `
         #include <stdatomic.h>
@@ -466,6 +466,7 @@ const has_std_atomics = (async() => {
     await fs.rm(tmpdir, {recursive: true, force: true});
     return supported;
 })();
+
 ${(async() => {
     if (await has_std_atomics) {
         return quote(
@@ -620,7 +621,7 @@ go build .
 - C++ support: when a flag is passed to the program, `class` should mean C++, not JS class. Create a keyword `jclass` to represent JS classes. Alternatively, do it the other way around, and have the `cppclass` keyword.
 
 # Contributing
-Any and all contributions are greatly appreciated. Just send a PR :)
+Any and all contributions are greatly appreciated. Just send a PR, issue, or feature request :)
 
 # License
 MIT
