@@ -78,6 +78,10 @@ func (pl *ParserLexer) Lex(lval *astSymType) int {
 			token = lexNextToken(pl.input, pl.cursor)
 		}
 		if token.kind == TEof {
+			if pl.in_macro {
+				pl.in_macro = false
+				return TMacroEnd
+			}
 			return 0
 		} else if token.kind == TInvalid {
 			pl.err = "invalid token"
