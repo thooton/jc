@@ -1,5 +1,7 @@
 package main
 
+import "bytes"
+
 const (
     TEof        = 0
     TInvalid    = 1
@@ -15,6 +17,23 @@ const (
 
 type LexToken struct {
     begin, end, kind uint32
+}
+
+func lexRawQuoteLit(input []byte, cursor uint) uint {
+    inp := input[cursor:]
+    dseq_end := bytes.IndexByte(inp, '(')
+    if dseq_end == -1 {
+        return uint(len(input))
+    }
+    eseq := make([]byte, 0, 2+dseq_end)
+    eseq = append(eseq, ')')
+    eseq = append(eseq, inp[:dseq_end]...)
+    eseq = append(eseq, '"')
+    eseq_loc := bytes.Index(inp[dseq_end+1:], eseq)
+    if eseq_loc == -1 {
+        return uint(len(input))
+    }
+    return cursor+uint(dseq_end+1+eseq_loc+len(eseq))
 }
 
 func lexNextToken(input []byte, cursor uint) LexToken {
@@ -143,6 +162,7 @@ lex_start:
         strpfx = "L"|("u" "8"?)|"U";
         dquotelit = strpfx? '"' (escapedchr | [^"\n\\\x00])* '"';
         squotelit = strpfx? "'" (escapedchr | [^'\n\\\x00])* "'";
+        rquotelit = strpfx? "R" '"';
 
         digit_sequence = [0-9']+;
         hex_digit_sequence = [0-9A-Fa-f']+;
@@ -178,6 +198,10 @@ lex_start:
         value = dquotelit | squotelit
             | intlit | floatlit;
         value {
+            return LexToken{uint32(began), uint32(cursor), TPLValue}
+        }
+        rquotelit {
+            cursor = lexRawQuoteLit(input, cursor)
             return LexToken{uint32(began), uint32(cursor), TPLValue}
         }
 

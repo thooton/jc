@@ -10,7 +10,7 @@ import (
 )
 
 /*
-func debugNode(n *AstNode, input string) {
+func debugNode(n *AstNode, input []byte) {
 	put := func(s string) {
 		fmt.Print(" " + s + " ")
 	}
@@ -20,7 +20,7 @@ func debugNode(n *AstNode, input string) {
 		}
 	}
 	lit := func() {
-		put(input[n.token.begin:n.token.end])
+		fmt.Print(" " + string(input[n.token.begin:n.token.end]) + " ")
 	}
 	lst := func(name string) {
 		put(name + ":")
