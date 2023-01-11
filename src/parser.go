@@ -8,7 +8,7 @@ import (
 
 type ParserLexer struct {
 	result AstNode
-	input  string
+	input  []byte
 	err    string
 	//parser_ref  astParser
 	cursor      uint
@@ -18,7 +18,7 @@ type ParserLexer struct {
 	in_macro    bool
 }
 
-func plNew(input string /*, parser_ref astParser*/) ParserLexer {
+func plNew(input []byte /*, parser_ref astParser*/) ParserLexer {
 	return ParserLexer{
 		result: AstNode{LexToken{0, 0, 0}, nil},
 		input:  input,
@@ -135,7 +135,7 @@ func (pl *ParserLexer) Error(s string) {
 	pl.err = s
 }
 
-func parseInitialAst(input string) (AstNode, string) {
+func parseInitialAst(input []byte) (AstNode, string) {
 	parser := astNewParser()
 	pl := plNew(input /*, parser*/)
 	result := parser.Parse(&pl)
@@ -165,7 +165,7 @@ func isIndisputablyJs(stmt []AstNode) bool {
 			return true
 		}
 	} else if ch1 != TConst &&
-		ch1 != TStructUnionEnum &&
+		ch1 != TStructUnionEnumClass &&
 		ch1 != TIdentifier &&
 
 		ch1 != AstInterpol {
@@ -210,7 +210,7 @@ func getJsBlockStmtEnd(nodes []AstNode) uint32 {
 	return U32_MAX
 }
 
-func nextMaybeJsStmt(nodes []AstNode, input string) (uint32, uint32) {
+func nextMaybeJsStmt(nodes []AstNode) (uint32, uint32) {
 	var ch uint32
 	var offset uint32 = 0
 	for {
@@ -235,8 +235,8 @@ func nextMaybeJsStmt(nodes []AstNode, input string) (uint32, uint32) {
 			return U32_MAX, U32_MAX
 		}
 		ch = nodes[0].token.kind
-		if ch == TFunctionForWhileClass ||
-		nodes[1].token.kind == TFunctionForWhileClass {
+		if ch == TFunctionForWhileJsclass ||
+		nodes[1].token.kind == TFunctionForWhileJsclass {
 			jend := getJsBlockStmtEnd(nodes)
 			if jend == U32_MAX {
 				//fmt.Println("BAD JEND!!!!")
@@ -297,13 +297,13 @@ C  -> logger is an array console[5][10], it is assigned to value
 In contrast, "console logger[5][10] = value" is unambiguously C,
 and so is "console (*logger[5])[10] = value".
 */
-func isValidJs(js_maybe []AstNode, input string) bool {
+func isValidJs(js_maybe []AstNode, input []byte) bool {
 	/* cheap trick */
 	tokens_builder := strings.Builder{}
 	for i := range js_maybe {
 		node := &js_maybe[i]
-		tokens_builder.WriteString(input[startOf(node):endOf(node)])
-		tokens_builder.WriteByte(' ')
+		_, _ = tokens_builder.Write(input[startOf(node):endOf(node)])
+		_ = tokens_builder.WriteByte(' ')
 	}
 	tokens := tokens_builder.String()
 	options := api.TransformOptions{}
@@ -311,7 +311,7 @@ func isValidJs(js_maybe []AstNode, input string) bool {
 	return len(result.Errors) == 0
 }
 
-func tryExtractC(nodes []AstNode, input string) uint32 {
+func tryExtractC(nodes []AstNode, input []byte) uint32 {
 	var ch uint32
 	var stmt_end uint32 = uint32(len(nodes))
 	var circle_nesting uint32 = 0
@@ -333,7 +333,7 @@ func tryExtractC(nodes []AstNode, input string) uint32 {
 			} else {
 				return U32_MAX
 			}
-		} else if ch == TStructUnionEnum {
+		} else if ch == TStructUnionEnumClass {
 			found_seu = true
 		} else if ch == AstBlock &&
 		circle_nesting == 0 {
@@ -367,7 +367,7 @@ func tryExtractC(nodes []AstNode, input string) uint32 {
 		/* has interpolated JS,
 		   or struct/enum/union keyword */
 		if ch == AstInterpol ||
-			ch == TStructUnionEnum {
+			ch == TStructUnionEnumClass {
 			return stmt_end
 		}
 	}
@@ -387,10 +387,10 @@ func tryExtractC(nodes []AstNode, input string) uint32 {
 	return stmt_end
 }
 
-func nextCSection(root []AstNode, input string) (uint32, uint32) {
+func nextCSection(root []AstNode, input []byte) (uint32, uint32) {
 	var offset uint32 = 0
 	for {
-		jstart, jend := nextMaybeJsStmt(root, input)
+		jstart, jend := nextMaybeJsStmt(root)
 		//fmt.Printf("jstart is %d\n", jstart)
 		if jstart == U32_MAX {
 			return U32_MAX, U32_MAX
@@ -421,7 +421,7 @@ func getEndOf(node *AstNode) uint32 {
 	return node.token.end
 }*/
 
-func reviseTLC(root []AstNode, input string) []AstNode {
+func reviseTLC(root []AstNode, input []byte) []AstNode {
 	new_root := make([]AstNode, 0, 4)
 	for {
 		cstart, cend := nextCSection(root, input)
@@ -581,7 +581,7 @@ func reviseLfn(root []AstNode) []AstNode {
 	}
 }
 
-func parseIntoAst(input string) (AstNode, string) {
+func parseIntoAst(input []byte) (AstNode, string) {
 	root, estr := parseInitialAst(input)
 	if estr != "" {
 		return AstNode{LexToken{0, 0, 0}, nil}, estr

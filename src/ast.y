@@ -30,7 +30,7 @@
 %}
 
 %token TIdentifier
-%token TConst TStructUnionEnum TFunctionForWhileClass TJsOnly
+%token TConst TStructUnionEnumClass TFunctionForWhileJsclass TJsOnly
 %token TMinusGt
 %token TEq
 %token TLSquare TRSquare
@@ -47,7 +47,7 @@
     node AstNode
 }
 
-%type <node> TIdentifier TConst TStructUnionEnum TFunctionForWhileClass TJsOnly TMinusGt
+%type <node> TIdentifier TConst TStructUnionEnumClass TFunctionForWhileJsclass TJsOnly TMinusGt
 %type <node> TEq TLSquare TRSquare TOther
 %type <node> TLBrace TRBrace TQuote TDollarLBrace TTick TLCircle TRCircle
 %type <node> TSemi
@@ -75,8 +75,8 @@
 harmless
     : TIdentifier
     | TConst
-    | TStructUnionEnum
-    | TFunctionForWhileClass
+    | TStructUnionEnumClass
+    | TFunctionForWhileJsclass
     | TJsOnly
     | TMinusGt
     | TEq

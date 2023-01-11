@@ -81,7 +81,7 @@ func debugNode(n *AstNode, input string) {
 	case TConst:
 		tok("const")
 		break
-	case TStructUnionEnum:
+	case TStructUnionEnumClass:
 		tok("seu")
 		break
 	case TJsOnly:
@@ -141,12 +141,11 @@ func main() {
 	infile := os.Args[2]
 	outfile := os.Args[4]
 	interpreter := os.Args[6]
-	input_bytes, err := os.ReadFile(infile)
+	input, err := os.ReadFile(infile)
 	if err != nil {
 		fmt.Printf("can't read file %s: %v\n", infile, err)
 		os.Exit(1)
 	}
-	input := string(input_bytes)
 	root, estr := parseIntoAst(input)
 	if estr != "" {
 		fmt.Printf("parsing error: %s\n", estr)

@@ -17,10 +17,10 @@ type LexToken struct {
     begin, end, kind uint32
 }
 
-func lexNextToken(input string, cursor uint) LexToken {
+func lexNextToken(input []byte, cursor uint) LexToken {
 	var began uint = cursor
     var marker uint = 0
-    peek_next := func(str string, i uint) byte {
+    peek_next := func(str []byte, i uint) byte {
         if i < uint(len(str)) {
             return str[i]
         } else {
@@ -72,14 +72,19 @@ lex_start:
         "const" { 
             return LexToken{uint32(began), uint32(cursor), TConst} 
         }
-        ("struct" | "union" | "enum") {
-            return LexToken{uint32(began), uint32(cursor), TStructUnionEnum}
+        ("struct" | "union" | "enum" | "class") {
+            return LexToken{uint32(began), uint32(cursor), TStructUnionEnumClass}
         }
         "quote" {
             return LexToken{uint32(began), uint32(cursor), TQuote}
         }
-        "function" | "for" | "while" | "class" {
-            return LexToken{uint32(began), uint32(cursor), TFunctionForWhileClass}
+        "function" | "for" | "while" {
+            return LexToken{uint32(began), uint32(cursor), TFunctionForWhileJsclass}
+        }
+        "jsclass" {
+            input[began] = ' '
+            input[began+1] = ' '
+            return LexToken{uint32(began+2), uint32(cursor), TFunctionForWhileJsclass}
         }
         ("async" | "let" | "var" | "undefined") {
             return LexToken{uint32(began), uint32(cursor), TJsOnly}
@@ -204,10 +209,10 @@ lex_start:
     */
 }
 
-func lexRegexpLit(input string, cursor uint) LexToken {
+func lexRegexpLit(input []byte, cursor uint) LexToken {
     var began uint = cursor
     var marker uint = 0
-    peek_next := func(str string, i uint) byte {
+    peek_next := func(str []byte, i uint) byte {
         if i < uint(len(str)) {
             return str[i]
         } else {
@@ -230,7 +235,7 @@ func lexRegexpLit(input string, cursor uint) LexToken {
     */
 }
 
-func lexTickLit(input string, cursor uint) LexToken {
+func lexTickLit(input []byte, cursor uint) LexToken {
     var began uint = cursor
     var ch byte
     for ;; {

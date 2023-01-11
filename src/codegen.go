@@ -222,11 +222,10 @@ async function jcInternalFinish() {
 
 type Codegen struct {
 	sb    []byte
-	input string
-    inqtable []byte
+	input []byte
 }
 
-func pushStringLiteral(src string, sb []byte) []byte {
+func pushStringLiteral(src []byte, sb []byte) []byte {
 	sb = append(sb, '"')
 	for i := range src {
 		ch := src[i]
@@ -380,13 +379,13 @@ func (cg *Codegen) generateForJs(nodes []AstNode) {
 	}
 }
 
-func codegenPerform(root *AstNode, input string, outfile string) []byte {
+func codegenPerform(root *AstNode, input []byte, outfile string) []byte {
 	cg := Codegen{
 		sb:    make([]byte, 0, 16384),
 		input: input,
 	}
 	cg.sb = append(cg.sb, "const JC_INTERNAL_OUTFILE = "...)
-	cg.sb = pushStringLiteral(outfile, cg.sb)
+	cg.sb = pushStringLiteral([]byte(outfile), cg.sb)
 	cg.sb = append(cg.sb, ";\n"...)
 	cg.sb = append(cg.sb, js_prelude...)
 	cg.generateForJs(root.nodes)

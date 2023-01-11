@@ -44,8 +44,8 @@ type astSymType struct {
 
 const TIdentifier = 57346
 const TConst = 57347
-const TStructUnionEnum = 57348
-const TFunctionForWhileClass = 57349
+const TStructUnionEnumClass = 57348
+const TFunctionForWhileJsclass = 57349
 const TJsOnly = 57350
 const TMinusGt = 57351
 const TEq = 57352
@@ -69,8 +69,8 @@ var astToknames = [...]string{
 	"$unk",
 	"TIdentifier",
 	"TConst",
-	"TStructUnionEnum",
-	"TFunctionForWhileClass",
+	"TStructUnionEnumClass",
+	"TFunctionForWhileJsclass",
 	"TJsOnly",
 	"TMinusGt",
 	"TEq",

@@ -1,17 +1,17 @@
 # jc
-`jc` is a tool that enables the meta-programming of C with JavaScript.
+`jc` is a tool that enables the meta-programming of C/C++ with JavaScript.
 
 ```cpp
 // Specialize exponentiation for a power
 function powFor(pwr) {
-    // A quote is a piece of C code expressed as a JS value.
+    // A quote is a piece of C/C++ code expressed as a JS value.
     var expr = quote(1);
     // Add " * v" to the expression `pwr` times.
     for (var i = 0; i < pwr; i++) {
         expr.add(quote( * v));
     }
 
-    // Create a C function as a JS value.
+    // Create a C/C++ function as a JS value.
     const pow_fn = (int v) -> static int {
         // JS interpolation: insert a JS value into C code.
         return ${expr};
@@ -588,15 +588,30 @@ i = 95
 ```cpp
 #include <stdio.h>
 
-typedef struct {
-    int v;
-} Integer;
+class CppClass {
+public:
+    void printStr(const char* s) {
+        printf("%s\n", s);
+    }
+};
+
+jsclass JavaScriptClass {
+    getIntegerStruct() {
+        return quote(
+            typedef struct {
+                int v;
+            } Integer;
+        )
+    }
+}
+
+${(new JavaScriptClass()).getIntegerStruct()};
 
 int main(void) {
     const char* str = ${`
-        multi-line strings in C!
+        multi-line strings in pure C!
     `};
-    printf("%s\n", str);
+    (CppClass()).printStr(str);
     Integer i = (Integer)${{v: 10005}};
     printf("JS objects -> C99 struct literals: %d\n", i.v);
 }
