@@ -13,7 +13,7 @@ function powFor(pwr) {
 
     // Create a C/C++ function as a JS value.
     const pow_fn = (int v) -> static int {
-        // JS interpolation: insert a JS value into C code.
+        // JS interpolation: insert a JS value into C/C++ code.
         return ${expr};
     };
     // Return it.
@@ -360,7 +360,7 @@ regex 1: 0 1
 regex 2: 1 0
 ```
 
-## Generics
+## Generics in C
 ```cpp
 #include <stdlib.h>
 function mkvec(T) {
@@ -618,7 +618,7 @@ int main(void) {
 ```
 ```
 
-        multi-line strings in C!
+        multi-line strings in pure C!
 
 JS objects -> C99 struct literals: 10005
 ```
@@ -633,7 +633,6 @@ go build .
 
 # Todo list
 - Module system: one can `inquire` another JC file, which consists of including all C in that file, as well as returning the value of the other file's JC_EXPORTS global variable. `const atomic = inquire "atomic.jh";`
-- C++ support: when a flag is passed to the program, `class` should mean C++, not JS class. Create a keyword `jclass` to represent JS classes. Alternatively, do it the other way around, and have the `cppclass` keyword.
 - Language server / integration with IDEs to provide proper syntax highlighting.
 
 # Contributing
