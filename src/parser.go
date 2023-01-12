@@ -80,7 +80,9 @@ func (pl *ParserLexer) Lex(lval *astSymType) int {
 		if token.kind == TEof {
 			if pl.in_macro {
 				pl.in_macro = false
-				lval.node = AstNode{LexToken{pl.cursor, pl.cursor, TMacroEnd}, nil}
+				lval.node = AstNode{LexToken{
+					uint32(pl.cursor), uint32(pl.cursor), TMacroEnd,
+				}, nil}
 				return TMacroEnd
 			}
 			return 0
