@@ -568,7 +568,9 @@ func reviseLfn(root []AstNode) []AstNode {
 			continue
 		}
 		if kind == AstLfnArgs ||
-			kind == AstLfnRetType {
+		kind == AstLfnRetType ||
+		kind == AstMacro ||
+		kind == AstQuote {
 			reviseWithinLfn(root[i].nodes)
 		} else {
 			replaced = reviseLfn(root[i].nodes)
